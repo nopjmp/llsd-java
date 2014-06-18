@@ -6,34 +6,26 @@
 
 package lindenlab.llsd;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.rmi.RemoteException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 /**
  * LLSD parser in Java. See <a href="http://wiki.secondlife.com/wiki/LLSD">http://wiki.secondlife.com/wiki/LLSD</a>
  * for more information on LLSD.
  */
-public class LLSDParser extends Object {
+public class LLSDParser {
     private final DateFormat iso9601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     /**
@@ -77,7 +69,7 @@ public class LLSDParser extends Object {
      * the document.
      */
     public LLSD parse(final InputStream xmlFile)
-        throws IOException, LLSDException, RemoteException, SAXException {
+        throws IOException, LLSDException, SAXException {
         final Document document = this.documentBuilder.parse(xmlFile);
         final List<Node> childNodesTrimmed;
         final Node llsdNode = document.getDocumentElement();
@@ -236,7 +228,7 @@ public class LLSDParser extends Object {
                 nodeText.append(childNode.getNodeValue());
                 break;
             case Node.ELEMENT_NODE:
-                if (childNode.getNodeName().equals("undefined")) {
+                if (childNode.getNodeName().equals("undef")) {
                     isUndefined = true;
                 }
                 break;
@@ -245,7 +237,9 @@ public class LLSDParser extends Object {
             }
         }
 
-        if (nodeName.equals("boolean")) {
+        if (nodeName.equals("undef")) {
+            return "";
+        } else if (nodeName.equals("boolean")) {
             return isUndefined
                 ? LLSDUndefined.BOOLEAN
                 : parseBoolean(nodeText.toString());

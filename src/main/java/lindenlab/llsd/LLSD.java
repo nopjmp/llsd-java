@@ -10,13 +10,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.rmi.RemoteException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,7 +21,7 @@ import java.util.UUID;
 /**
  * LLSD root, returns by an LLSDParser.
  */
-public class LLSD extends Object {
+public class LLSD {
     private final Object content;
     private DecimalFormat decimalFormat = null;
     private DateFormat iso9601Format = null;
@@ -209,7 +206,7 @@ public class LLSD extends Object {
         assert null != toSerialise;
 
         if (toSerialise instanceof Map) {
-            final Map<String, Object> serialiseMap = ((Map<String, Object>)toSerialise);
+            final Map<String, Object> serialiseMap = (Map<String, Object>)toSerialise;
 
             writer.write("<map>\n");
             for (String key: serialiseMap.keySet()) {
@@ -221,7 +218,7 @@ public class LLSD extends Object {
             writer.write("</map>\n");
         } else if (toSerialise instanceof List) {
             writer.write("<array>\n");
-            for (Object current: ((List<Object>)toSerialise)) {
+            for (Object current: (List<Object>)toSerialise) {
                 writer.write("\t");
                 serialiseElement(writer, current);
             }
@@ -261,28 +258,28 @@ public class LLSD extends Object {
         } else if (toSerialise instanceof LLSDUndefined) {
             switch((LLSDUndefined)toSerialise) {
             case BINARY:
-                writer.write("<binary><undefined /></binary>\n");
+                writer.write("<binary><undef /></binary>\n");
                 break;
             case BOOLEAN:
-                writer.write("<boolean><undefined /></boolean>\n");
+                writer.write("<boolean><undef /></boolean>\n");
                 break;
             case DATE:
-                writer.write("<date><undefined /></date>\n");
+                writer.write("<date><undef /></date>\n");
                 break;
             case INTEGER:
-                writer.write("<integer><undefined /></integer>\n");
+                writer.write("<integer><undef /></integer>\n");
                 break;
             case REAL:
-                writer.write("<real><undefined /></real>\n");
+                writer.write("<real><undef /></real>\n");
                 break;
             case STRING:
-                writer.write("<string><undefined /></string>\n");
+                writer.write("<string><undef /></string>\n");
                 break;
             case URI:
-                writer.write("<uri><undefined /></uri>\n");
+                writer.write("<uri><undef /></uri>\n");
                 break;
             case UUID:
-                writer.write("<uuid><undefined /></uuid>\n");
+                writer.write("<uuid><undef /></uuid>\n");
                 break;
             }
         } else {
@@ -290,7 +287,6 @@ public class LLSD extends Object {
                 + toSerialise.getClass().getName() + "\".");
         }
 
-        return;
     }
 
     public String toString() {
