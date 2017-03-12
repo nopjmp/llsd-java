@@ -13,10 +13,7 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * LLSD root, returns by an LLSDParser.
@@ -245,16 +242,19 @@ public class LLSD {
             }
         } else if (toSerialise instanceof UUID) {
             writer.write("<uuid>"
-                + toSerialise.toString() + "</uuid>\n");
+                    + toSerialise.toString() + "</uuid>\n");
         } else if (toSerialise instanceof String) {
             writer.write("<string>"
-                + encodeXML((String)toSerialise) + "</string>\n");
+                    + encodeXML((String)toSerialise) + "</string>\n");
         } else if (toSerialise instanceof Date) {
             writer.write("<date>"
-                + iso9601Format.format((Date)toSerialise) + "</date>");
+                    + iso9601Format.format((Date)toSerialise) + "</date>");
         } else if (toSerialise instanceof URI) {
             writer.write("<uri>"
-                + encodeXML(toSerialise.toString()) + "</uri>");
+                    + encodeXML(toSerialise.toString()) + "</uri>");
+        } else if (toSerialise instanceof byte[]) {
+            writer.write("<binary encoding=\"base64\">"
+                    + Base64.getEncoder().encodeToString((byte[]) toSerialise) + "</binary>");
         } else if (toSerialise instanceof LLSDUndefined) {
             switch((LLSDUndefined)toSerialise) {
             case BINARY:

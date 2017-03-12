@@ -7,6 +7,7 @@
 package lindenlab.llsd;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -213,8 +214,6 @@ public class LLSDParser {
         // Labs (binary).
         if (nodeName.equals("array")) {
             return parseArray(childNodes);
-        } else if (nodeName.equals("binary")) {
-            throw new LLSDException("\"binary\" node type not implemented because it's a stupid idea that breaks how XML works. In specific, XML has a character set, binary data does not, and mixing the two is a recipe for disaster. Linden Labs should have used base 64 encode if they absolutely must, or attached binary content using a MIME multipart type.");
         } else if (nodeName.equals("map")) {
             return parseMap(childNodes);
         }
@@ -237,40 +236,51 @@ public class LLSDParser {
             }
         }
 
-        if (nodeName.equals("undef")) {
-            return "";
-        } else if (nodeName.equals("boolean")) {
-            return isUndefined
-                ? LLSDUndefined.BOOLEAN
-                : parseBoolean(nodeText.toString());
-        } else if (nodeName.equals("date")) {
-            return isUndefined
-                ? LLSDUndefined.DATE
-                : parseDate(nodeText.toString());
-        } else if (nodeName.equals("integer")) {
-            return isUndefined
-                ? LLSDUndefined.INTEGER
-                : parseInteger(nodeText.toString());
-        } else if (nodeName.equals("real")) {
-            return isUndefined
-                ? LLSDUndefined.REAL
-                : parseReal(nodeText.toString());
-        } else if (nodeName.equals("string")) {
-            return isUndefined
-                ? LLSDUndefined.STRING
-                : parseString(nodeText.toString());
-        } else if (nodeName.equals("uri")) {
-            return isUndefined
-                ? LLSDUndefined.URI
-                : parseURI(nodeText.toString());
-        } else if (nodeName.equals("uuid")) {
-            return isUndefined
-                ? LLSDUndefined.UUID
-                : parseUUID(nodeText.toString());
+        switch(nodeName) {
+            case "undef":
+                return "";
+            case "boolean":
+                return isUndefined
+                        ? LLSDUndefined.BOOLEAN
+                        : parseBoolean(nodeText.toString());
+            case "date":
+                return isUndefined
+                        ? LLSDUndefined.DATE
+                        : parseDate(nodeText.toString());
+            case "integer":
+                return isUndefined
+                        ? LLSDUndefined.INTEGER
+                        : parseInteger(nodeText.toString());
+            case "real":
+                return isUndefined
+                        ? LLSDUndefined.REAL
+                        : parseReal(nodeText.toString());
+            case "string":
+                return isUndefined
+                        ? LLSDUndefined.STRING
+                        : parseString(nodeText.toString());
+            case "uri":
+                return isUndefined
+                        ? LLSDUndefined.URI
+                        : parseURI(nodeText.toString());
+            case "uuid":
+                return isUndefined
+                        ? LLSDUndefined.UUID
+                        : parseUUID(nodeText.toString());
+            case "binary":
+                NamedNodeMap attrs = node.getAttributes();
+                switch (attrs.getNamedItem("encoding").getNodeValue()) {
+                    case "base64":
+                        return isUndefined
+                                ? LLSDUndefined.BINARY
+                                : parseBinary(nodeText.toString());
+                    default:
+                        throw new LLSDException("encoding other than base64 is not supported");
+                }
+            default:
+                throw new LLSDException("Encountered unexpected node \""
+                        + node.getNodeName() + "\".");
         }
-
-        throw new LLSDException("Encountered unexpected node \""
-            + node.getNodeName() + "\".");
     }
 
     private Double parseReal(final String elementContents)
@@ -331,5 +341,16 @@ public class LLSDParser {
         }
 
         return value;
+    }
+
+    private byte[] parseBinary(final String elementContents) throws LLSDException {
+        if (elementContents.length() == 0) {
+            return new byte[]{};
+        }
+        try {
+            return Base64.getDecoder().decode(elementContents.getBytes());
+        } catch (IllegalArgumentException e) {
+            throw new LLSDException("Unable to parse LLSD binary value. Contents omitted in exception.");
+        }
     }
 }
